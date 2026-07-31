@@ -1,0 +1,1030 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DropForge — Product to Portfolio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Saira+Condensed:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   DropForge design tokens — "night shift at the forge"
+   Graphite steel surfaces, one molten-amber accent, verdict
+   colors reserved strictly for Kill / Watch / Scale semantics.
+   ============================================================ */
+:root{
+  --bg:#101315;
+  --panel:#171b1e;
+  --panel-2:#1d2327;
+  --panel-3:#232a2f;
+  --line:#2a3136;
+  --line-soft:#22282c;
+  --ink:#e9eceb;
+  --muted:#8a949b;
+  --faint:#5c666d;
+  --forge:#ff9e4a;
+  --forge-hot:#ffb469;
+  --forge-dim:rgba(255,158,74,.13);
+  --forge-line:rgba(255,158,74,.35);
+  --kill:#ff6159;   --kill-dim:rgba(255,97,89,.13);
+  --watch:#ffc24b;  --watch-dim:rgba(255,194,75,.12);
+  --scale:#45d48a;  --scale-dim:rgba(69,212,138,.12);
+  --info:#6db3f2;   --info-dim:rgba(109,179,242,.12);
+  --r:10px;
+  --font-body:'Inter',system-ui,sans-serif;
+  --font-display:'Saira Condensed',system-ui,sans-serif;
+  --font-mono:'IBM Plex Mono',ui-monospace,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scrollbar-color:var(--line) var(--bg)}
+body{background:var(--bg);color:var(--ink);font-family:var(--font-body);font-size:14px;line-height:1.55;
+  background-image:radial-gradient(1200px 500px at 80% -10%, rgba(255,158,74,.05), transparent 60%);}
+button{font-family:inherit;cursor:pointer}
+input,textarea,select{font-family:inherit;color:var(--ink)}
+::placeholder{color:var(--faint)}
+:focus-visible{outline:2px solid var(--forge);outline-offset:2px;border-radius:4px}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+
+/* ---------- shell ---------- */
+.wrap{max-width:1240px;margin:0 auto;padding:0 20px 80px}
+header.top{display:flex;align-items:center;gap:16px;flex-wrap:wrap;padding:18px 0 14px;border-bottom:1px solid var(--line-soft)}
+.logo{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.logo h1{font-family:var(--font-display);font-weight:700;font-size:30px;letter-spacing:.06em;text-transform:uppercase;line-height:1}
+.logo h1 em{color:var(--forge);font-style:normal}
+.logo .tag{color:var(--muted);font-size:12px}
+.top-right{margin-left:auto;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.pill{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--line);border-radius:999px;padding:5px 12px;font-size:12px;color:var(--muted);background:var(--panel)}
+.pill .dot{width:8px;height:8px;border-radius:50%;background:var(--faint)}
+.pill.proxy .dot{background:var(--scale)} .pill.direct .dot{background:var(--watch)} .pill.detecting .dot{background:var(--info);animation:pulse 1.2s infinite}
+@keyframes pulse{50%{opacity:.35}}
+.fx{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted)}
+.fx input{width:72px;background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:5px 8px;font-family:var(--font-mono);font-size:12px}
+
+/* ---------- tabs ---------- */
+nav.tabs{display:flex;gap:4px;margin:18px 0 22px;border-bottom:1px solid var(--line-soft);flex-wrap:wrap}
+nav.tabs button{background:none;border:none;border-bottom:2px solid transparent;color:var(--muted);
+  font-family:var(--font-display);font-size:17px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;
+  padding:9px 16px 11px;display:flex;align-items:center;gap:8px}
+nav.tabs button .n{font-family:var(--font-mono);font-size:11px;color:var(--faint);border:1px solid var(--line);border-radius:4px;padding:1px 5px}
+nav.tabs button.active{color:var(--ink);border-bottom-color:var(--forge)}
+nav.tabs button.active .n{color:var(--forge);border-color:var(--forge-line)}
+nav.tabs button:hover{color:var(--ink)}
+main section.view{display:none}
+main section.view.active{display:block;animation:fadein .18s ease}
+@keyframes fadein{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+
+/* ---------- panels & general ---------- */
+.panel{background:var(--panel);border:1px solid var(--line-soft);border-radius:var(--r);padding:20px}
+.panel + .panel{margin-top:16px}
+.panel h2{font-family:var(--font-display);font-size:20px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;margin-bottom:4px}
+.panel h3{font-family:var(--font-display);font-size:16px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);margin:16px 0 8px}
+.sub{color:var(--muted);font-size:13px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:900px){.grid2{grid-template-columns:1fr}}
+.btn{border:1px solid var(--line);background:var(--panel-2);color:var(--ink);border-radius:8px;padding:9px 16px;font-size:13px;font-weight:500;display:inline-flex;align-items:center;gap:8px;transition:border-color .15s,background .15s}
+.btn:hover{border-color:var(--forge-line)}
+.btn.primary{background:var(--forge);border-color:var(--forge);color:#1a1108;font-weight:600}
+.btn.primary:hover{background:var(--forge-hot)}
+.btn.ghost{background:none}
+.btn.danger{border-color:var(--kill);color:var(--kill);background:var(--kill-dim)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn .spin{width:13px;height:13px;border:2px solid rgba(0,0,0,.25);border-top-color:currentColor;border-radius:50%;animation:rot .7s linear infinite;display:none}
+.btn.loading .spin{display:inline-block}
+@keyframes rot{to{transform:rotate(360deg)}}
+textarea.big{width:100%;min-height:96px;background:var(--panel-2);border:1px solid var(--line);border-radius:8px;padding:12px;font-size:13px;resize:vertical}
+input.field,select.field{width:100%;background:var(--panel-2);border:1px solid var(--line);border-radius:8px;padding:9px 12px;font-size:13px}
+label.lab{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:0 0 5px}
+.mono{font-family:var(--font-mono)}
+.hint{font-size:12px;color:var(--faint)}
+.notice{border:1px solid var(--line);border-left:3px solid var(--info);background:var(--info-dim);border-radius:8px;padding:10px 14px;font-size:12.5px;color:var(--muted);margin-top:14px}
+.notice.honest{border-left-color:var(--watch);background:var(--watch-dim)}
+.notice.sa{border-left-color:var(--scale);background:var(--scale-dim)}
+.notice strong{color:var(--ink)}
+
+/* ---------- verdict chips ---------- */
+.chip{display:inline-flex;align-items:center;gap:6px;font-family:var(--font-mono);font-size:11px;font-weight:600;letter-spacing:.06em;border-radius:5px;padding:3px 9px;text-transform:uppercase}
+.chip.kill{color:var(--kill);background:var(--kill-dim);border:1px solid var(--kill)}
+.chip.watch{color:var(--watch);background:var(--watch-dim);border:1px solid var(--watch)}
+.chip.scale{color:var(--scale);background:var(--scale-dim);border:1px solid var(--scale)}
+.chip.pass{color:var(--scale);background:var(--scale-dim);border:1px solid var(--scale)}
+.chip.idle{color:var(--faint);background:var(--panel-2);border:1px solid var(--line)}
+
+/* ---------- discovery scoring ---------- */
+.score-hero{display:flex;gap:22px;align-items:center;flex-wrap:wrap}
+.gauge{position:relative;width:132px;height:132px;flex:none}
+.gauge svg{transform:rotate(-90deg)}
+.gauge .val{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.gauge .val b{font-family:var(--font-mono);font-size:34px;font-weight:600;line-height:1}
+.gauge .val span{font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-top:3px}
+.dims{flex:1;min-width:280px;display:flex;flex-direction:column;gap:9px}
+.dim{display:grid;grid-template-columns:170px 1fr 44px;gap:12px;align-items:center}
+@media(max-width:600px){.dim{grid-template-columns:120px 1fr 40px}}
+.dim .name{font-size:12.5px;color:var(--muted)}
+.dim.weak .name{color:var(--kill)}
+.dim .bar{height:7px;background:var(--panel-3);border-radius:4px;overflow:hidden}
+.dim .bar i{display:block;height:100%;border-radius:4px;background:var(--forge);transition:width .5s ease}
+.dim.weak .bar i{background:var(--kill)}
+.dim .num{font-family:var(--font-mono);font-size:13px;text-align:right}
+.dim-reason{font-size:12px;color:var(--faint);margin:-4px 0 2px;padding-left:2px}
+.gate{margin-top:16px;border-top:1px dashed var(--line);padding-top:14px;display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.gate .gate-msg{font-size:13px}
+.gate .gate-msg.pass{color:var(--scale)} .gate .gate-msg.fail{color:var(--kill)}
+.prod-head{display:flex;gap:12px;align-items:baseline;flex-wrap:wrap;margin-bottom:14px}
+.prod-head h3{margin:0;color:var(--ink);font-size:19px}
+.prod-head .cat{font-size:12px;color:var(--faint)}
+.prod-econ{display:flex;gap:16px;font-family:var(--font-mono);font-size:12px;color:var(--muted);flex-wrap:wrap;margin-bottom:6px}
+.prod-econ b{color:var(--ink)}
+
+/* ---------- store build assets ---------- */
+.asset{background:var(--panel-2);border:1px solid var(--line-soft);border-radius:8px;padding:14px;margin-top:10px}
+.asset .a-head{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.asset .a-head h4{font-family:var(--font-display);font-size:14px;letter-spacing:.06em;text-transform:uppercase;color:var(--forge)}
+.asset .a-head .copy{margin-left:auto;background:none;border:1px solid var(--line);border-radius:6px;color:var(--muted);font-size:11px;padding:3px 9px;cursor:pointer}
+.asset .a-head .copy:hover{color:var(--ink);border-color:var(--forge-line)}
+.asset pre{white-space:pre-wrap;font-family:var(--font-body);font-size:13px;color:var(--ink)}
+.asset ul{padding-left:18px;font-size:13px}
+.asset li{margin:3px 0}
+.angle{border-left:2px solid var(--forge-line);padding:2px 0 2px 12px;margin:10px 0}
+.angle b{color:var(--forge-hot)}
+.angle .ugc{font-family:var(--font-mono);font-size:12px;color:var(--muted);background:var(--panel-3);border-radius:6px;padding:8px 10px;margin-top:6px;white-space:pre-wrap}
+
+/* ---------- Gauntlet rail (signature element) ---------- */
+.rail{position:relative;display:grid;grid-template-columns:repeat(4,1fr);gap:0;margin:18px 0 6px}
+.rail::before{content:"";position:absolute;top:15px;left:6%;right:6%;height:2px;background:var(--line)}
+.rail .stop{position:relative;text-align:center;padding-top:34px}
+.rail .stop .node{position:absolute;top:7px;left:50%;transform:translateX(-50%);width:17px;height:17px;border-radius:50%;
+  background:var(--panel-3);border:2px solid var(--line);z-index:1}
+.rail .stop.active .node{background:var(--forge);border-color:var(--forge);box-shadow:0 0 12px rgba(255,158,74,.55)}
+.rail .stop.done .node{background:var(--scale);border-color:var(--scale)}
+.rail .stop.dead .node{background:var(--kill);border-color:var(--kill)}
+.rail .stop .t{font-family:var(--font-display);font-size:14px;letter-spacing:.06em;text-transform:uppercase}
+.rail .stop .s{font-family:var(--font-mono);font-size:11px;color:var(--muted)}
+.tier{border:1px solid var(--line-soft);border-radius:8px;background:var(--panel-2);margin-top:12px}
+.tier .t-head{display:flex;align-items:center;gap:12px;padding:12px 16px;cursor:pointer;flex-wrap:wrap}
+.tier .t-head .badge{font-family:var(--font-mono);font-size:11px;color:var(--forge);border:1px solid var(--forge-line);border-radius:4px;padding:2px 7px}
+.tier .t-head h4{font-family:var(--font-display);font-size:16px;letter-spacing:.05em;text-transform:uppercase}
+.tier .t-head .rule{font-size:12px;color:var(--muted)}
+.tier .t-head .chip{margin-left:auto}
+.tier .t-body{border-top:1px solid var(--line-soft);padding:14px 16px;display:none}
+.tier.open .t-body{display:block}
+.metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px}
+.metrics input{width:100%;background:var(--panel-3);border:1px solid var(--line);border-radius:6px;padding:8px 10px;font-family:var(--font-mono);font-size:13px}
+.derived{display:flex;gap:18px;flex-wrap:wrap;margin-top:10px;font-family:var(--font-mono);font-size:12px;color:var(--muted)}
+.derived b{color:var(--ink)}
+.verdict-note{margin-top:10px;font-size:12.5px;border-radius:6px;padding:9px 12px;display:none}
+.verdict-note.kill{display:block;color:var(--kill);background:var(--kill-dim)}
+.verdict-note.watch{display:block;color:var(--watch);background:var(--watch-dim)}
+.verdict-note.scale{display:block;color:var(--scale);background:var(--scale-dim)}
+
+/* ---------- command center ---------- */
+.rollup{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-bottom:16px}
+.kpi{background:var(--panel-2);border:1px solid var(--line-soft);border-radius:8px;padding:13px 15px}
+.kpi .k{font-size:10.5px;text-transform:uppercase;letter-spacing:.09em;color:var(--muted)}
+.kpi .v{font-family:var(--font-mono);font-size:21px;font-weight:600;margin-top:3px}
+.kpi .z{font-family:var(--font-mono);font-size:11.5px;color:var(--faint)}
+.kpi.profit .v.pos{color:var(--scale)} .kpi.profit .v.neg{color:var(--kill)}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px}
+.store-card{background:var(--panel-2);border:1px solid var(--line-soft);border-radius:10px;padding:16px;display:flex;flex-direction:column;gap:10px}
+.store-card:hover{border-color:var(--forge-line)}
+.store-card .sc-top{display:flex;align-items:flex-start;gap:10px}
+.store-card h4{font-family:var(--font-display);font-size:17px;letter-spacing:.04em;text-transform:uppercase;line-height:1.15}
+.store-card .niche{font-size:12px;color:var(--muted)}
+.store-card .sc-kpis{display:flex;gap:14px;font-family:var(--font-mono);font-size:12px;color:var(--muted);flex-wrap:wrap}
+.store-card .sc-kpis b{color:var(--ink)}
+.store-card .sc-foot{display:flex;align-items:center;gap:8px;margin-top:auto;flex-wrap:wrap}
+.store-card select{background:var(--panel-3);border:1px solid var(--line);border-radius:6px;color:var(--muted);font-size:12px;padding:4px 8px}
+.mini{background:none;border:1px solid var(--line);border-radius:6px;color:var(--muted);font-size:11.5px;padding:4px 10px;cursor:pointer}
+.mini:hover{color:var(--ink);border-color:var(--forge-line)}
+.strategy{margin-top:16px;border:1px dashed var(--forge-line);background:var(--forge-dim);border-radius:8px;padding:12px 16px;font-size:13px}
+.strategy b{color:var(--forge-hot)}
+
+/* ---------- playbook / reference ---------- */
+details.playbook{border:1px solid var(--line-soft);border-radius:var(--r);background:var(--panel);margin-top:16px}
+details.playbook summary{cursor:pointer;list-style:none;display:flex;align-items:center;gap:10px;padding:14px 20px;
+  font-family:var(--font-display);font-size:16px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
+details.playbook summary::-webkit-details-marker{display:none}
+details.playbook summary .tw{transition:transform .15s;color:var(--forge)}
+details.playbook[open] summary .tw{transform:rotate(90deg)}
+details.playbook .pb-body{border-top:1px solid var(--line-soft);padding:16px 20px;display:grid;grid-template-columns:1fr 1fr;gap:18px}
+@media(max-width:900px){details.playbook .pb-body{grid-template-columns:1fr}}
+.pb-body h5{font-family:var(--font-display);font-size:13px;letter-spacing:.07em;text-transform:uppercase;color:var(--forge);margin-bottom:6px}
+.pb-body ul{padding-left:16px;font-size:12.5px;color:var(--muted)}
+.pb-body li{margin:4px 0}
+.pb-body li b{color:var(--ink)}
+
+/* ---------- empty / toast / skeleton ---------- */
+.empty{border:1px dashed var(--line);border-radius:10px;padding:36px 24px;text-align:center;color:var(--muted)}
+.empty .big-ic{font-size:26px;margin-bottom:8px;color:var(--faint)}
+#toasts{position:fixed;bottom:18px;right:18px;display:flex;flex-direction:column;gap:8px;z-index:50}
+.toast{background:var(--panel-3);border:1px solid var(--line);border-left:3px solid var(--forge);border-radius:8px;
+  padding:10px 14px;font-size:13px;max-width:340px;box-shadow:0 6px 24px rgba(0,0,0,.4);animation:fadein .2s ease}
+.toast.err{border-left-color:var(--kill)} .toast.ok{border-left-color:var(--scale)}
+.skel{height:12px;border-radius:5px;background:linear-gradient(90deg,var(--panel-2),var(--panel-3),var(--panel-2));background-size:200% 100%;animation:sk 1.1s infinite;margin:8px 0}
+@keyframes sk{to{background-position:-200% 0}}
+.hidden{display:none!important}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="top">
+  <div class="logo">
+    <h1>Drop<em>Forge</em></h1>
+    <span class="tag">find it · build it · run the Gauntlet · multiply</span>
+  </div>
+  <div class="top-right">
+    <div class="pill detecting" id="modePill"><span class="dot"></span><span id="modeLabel">Detecting backend…</span></div>
+    <div class="fx">USD→ZAR <input type="number" id="fxRate" value="18.50" step="0.05" min="1" aria-label="USD to ZAR exchange rate"></div>
+  </div>
+</header>
+
+<nav class="tabs" role="tablist">
+  <button class="active" data-view="discover" role="tab"><span class="n">1</span>Discovery</button>
+  <button data-view="build" role="tab"><span class="n">2</span>Store Build</button>
+  <button data-view="gauntlet" role="tab"><span class="n">3</span>Decision Console</button>
+  <button data-view="command" role="tab"><span class="n">4</span>Command Center</button>
+</nav>
+
+<main>
+
+<!-- ================= SECTION 1 · DISCOVERY ================= -->
+<section class="view active" id="view-discover">
+  <div class="panel">
+    <h2>Product Discovery &amp; Scoring</h2>
+    <p class="sub">Paste an AliExpress / CJ URL or a product description — or generate a suggestion from nothing. Every candidate is scored against the five-dimension rubric with a hard 80-point gate.</p>
+
+    <div class="grid2" style="margin-top:16px">
+      <div>
+        <label class="lab" for="prodInput">Paste a product URL or description</label>
+        <textarea class="big" id="prodInput" placeholder="https://www.aliexpress.com/item/…  or  'Collapsible silicone pet water bottle with carabiner clip, ~$3.20 cost'"></textarea>
+        <div style="margin-top:10px;display:flex;gap:10px;flex-wrap:wrap">
+          <button class="btn primary" id="btnScorePasted"><span class="spin"></span>Score this product</button>
+          <button class="btn ghost" id="btnImportFeed" title="Backend stub — see the notice below">Import live data (stub)</button>
+        </div>
+      </div>
+      <div>
+        <label class="lab">No product yet?</label>
+        <p class="hint" style="margin-bottom:10px">Auto mode generates one dropship-viable candidate, scores it against the same rubric, and re-forges automatically-rejected ideas on demand.</p>
+        <button class="btn" id="btnGenerate"><span class="spin"></span>⚒ Generate a candidate</button>
+        <div class="hint" style="margin-top:8px" id="forgeCount"></div>
+      </div>
+    </div>
+
+    <div class="notice honest">
+      <strong>Honesty check:</strong> these scores measure coherence and product logic — they are <strong>not verified market data</strong>. Real AliExpress/CJ prices, shipping times, and review counts shift weekly. Verify cost, shipping-to-US, and review quality at the source before a single rand of ad spend. The <em>Import live data</em> button becomes real once the <span class="mono">/api/product-import</span> stub is wired to CJ's API on the Railway backend.
+    </div>
+  </div>
+
+  <div class="panel hidden" id="scorePanel">
+    <div class="prod-head">
+      <h3 id="spName">—</h3>
+      <span class="cat" id="spCat"></span>
+    </div>
+    <p class="sub" id="spOneLiner" style="margin-bottom:12px"></p>
+    <div class="prod-econ">
+      <span>Est. COGS <b id="spCogs">—</b></span>
+      <span>Realistic AOV <b id="spAov">—</b></span>
+      <span>Gross margin room <b id="spMargin">—</b></span>
+      <span>ZAR edge <b id="spZarNote">—</b></span>
+    </div>
+    <div class="score-hero">
+      <div class="gauge" aria-label="Overall score">
+        <svg width="132" height="132" viewBox="0 0 132 132">
+          <circle cx="66" cy="66" r="58" fill="none" stroke="var(--panel-3)" stroke-width="9"/>
+          <circle id="gaugeArc" cx="66" cy="66" r="58" fill="none" stroke="var(--forge)" stroke-width="9"
+                  stroke-linecap="round" stroke-dasharray="364.4" stroke-dashoffset="364.4"/>
+        </svg>
+        <div class="val"><b id="gaugeNum">0</b><span>overall / 100</span></div>
+      </div>
+      <div class="dims" id="dimList"></div>
+    </div>
+    <div class="gate" id="gateRow"></div>
+    <div class="notice sa hidden" id="zarEdge"></div>
+  </div>
+</section>
+
+<!-- ================= SECTION 2 · STORE BUILD ================= -->
+<section class="view" id="view-build">
+  <div class="panel">
+    <h2>Store Build</h2>
+    <p class="sub">Generates the full listing kit for the product that cleared (or overrode) the gate: titles, description, benefit bullets, FAQ, a bundle play, 3–5 Facebook creative angles with UGC scripts, and ready-to-paste Shopify listing text.</p>
+    <div id="buildEmpty" class="empty" style="margin-top:16px">
+      <div class="big-ic">⚒</div>
+      <b>No qualified product yet.</b><br>Score a product in Discovery first — the gate is 80. Anything that passes (or is explicitly overridden) unlocks this tab.
+    </div>
+    <div id="buildReady" class="hidden" style="margin-top:16px">
+      <div class="prod-econ" id="buildProdLine"></div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:8px">
+        <button class="btn primary" id="btnBuildAssets"><span class="spin"></span>Generate store assets</button>
+        <button class="btn ghost" id="btnShopifyPublish" title="Backend stub">Publish to Shopify (stub)</button>
+        <button class="btn ghost" id="btnCreateStore" disabled>＋ Create store from this product</button>
+      </div>
+      <div id="assetSkeleton" class="hidden"><div class="skel" style="width:60%"></div><div class="skel" style="width:85%"></div><div class="skel" style="width:75%"></div><div class="skel" style="width:40%"></div></div>
+      <div id="assetOut"></div>
+      <div class="notice sa">
+        <strong>SA setup note:</strong> Shopify Payments is not available in South Africa — connect <strong>PayFast</strong> or <strong>Yoco</strong> as the gateway before launch. Selling in USD while your costs sit in ZAR is a structural margin edge; the Command Center profit roll-up shows both currencies.
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= SECTION 3 · DECISION CONSOLE ================= -->
+<section class="view" id="view-gauntlet">
+  <div class="panel">
+    <h2>The Gauntlet — Kill / Watch / Scale</h2>
+    <p class="sub">Four spend checkpoints, exact thresholds, no vibes. Enter the store's real ad metrics at each tier; the verdict is computed, not felt.</p>
+
+    <div style="margin-top:14px;display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+      <label class="lab" for="storeSelect" style="margin:0">Store</label>
+      <select class="field" id="storeSelect" style="max-width:320px"></select>
+      <button class="btn ghost" id="btnFbImport" title="Backend stub">Auto-fill from Facebook (stub)</button>
+    </div>
+
+    <div id="gauntletEmpty" class="empty" style="margin-top:16px">
+      <div class="big-ic">◎</div>
+      <b>No stores yet.</b><br>Create one from a qualified product in Store Build, or load the sample store from the Command Center to explore the console.
+    </div>
+
+    <div id="gauntletBody" class="hidden">
+      <div class="rail" id="railRow">
+        <div class="stop" data-stop="1"><span class="node"></span><div class="t">Hook</div><div class="s">$50</div></div>
+        <div class="stop" data-stop="2"><span class="node"></span><div class="t">Page</div><div class="s">$100</div></div>
+        <div class="stop" data-stop="3"><span class="node"></span><div class="t">Offer</div><div class="s">$150–200</div></div>
+        <div class="stop" data-stop="4"><span class="node"></span><div class="t">Scale</div><div class="s">$250+</div></div>
+      </div>
+      <div id="tiersHost"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= SECTION 4 · COMMAND CENTER ================= -->
+<section class="view" id="view-command">
+  <div class="panel">
+    <h2>Multi-Store Command Center</h2>
+    <p class="sub">Portfolio roll-up across every store, in USD and ZAR (edit the rate up top).</p>
+    <div class="rollup" id="rollup" style="margin-top:14px"></div>
+    <div id="ccEmpty" class="empty">
+      <div class="big-ic">▦</div>
+      <b>The floor is empty.</b><br>Stores you create in Store Build appear here.<br><br>
+      <button class="btn" id="btnSample">Load a sample store to explore</button>
+    </div>
+    <div class="cards" id="cardHost"></div>
+    <div class="strategy">
+      <b>Standing order:</b> build <b>one</b> store, prove it through the Gauntlet, <em>then</em> multiply. Five untested stores at once is five ways to leak ad spend — one proven store is a template you can copy.
+    </div>
+    <div class="notice">
+      <strong>Persistence note:</strong> state is in-memory for this preview and resets on refresh. On Railway, attach a small database (Railway Postgres) behind <span class="mono">GET/PUT /api/stores</span> — the state object is already fully serializable, so it's a small change (see server.js comments).
+    </div>
+  </div>
+</section>
+
+</main>
+
+<!-- ================= PLAYBOOK (collapsible reference) ================= -->
+<details class="playbook">
+  <summary><span class="tw">▶</span> Playbook — timing, targeting &amp; SA notes</summary>
+  <div class="pb-body">
+    <div>
+      <h5>Timing &amp; schedule</h5>
+      <ul>
+        <li>Run campaigns <b>24/7</b> — don't restrict hours manually; the algorithm optimises delivery better than a manual schedule.</li>
+        <li><b>SA → US timezone gap:</b> US buyers are active while you sleep. Check metrics <b>once each morning</b> rather than watching them live — reacting mid-learning-phase is how good ads get killed early.</li>
+      </ul>
+      <h5>Targeting</h5>
+      <ul>
+        <li>Target <b>Tier-1 English markets</b>: US / UK / CA / AU.</li>
+        <li><b>One country per ad set</b> — start with the US.</li>
+        <li>Start <b>broad</b>: no interest-stacking. Let the pixel find the buyer.</li>
+        <li>Minimum <b>3–5 creative variants</b> in Tier 1 — you're testing hooks, not one ad.</li>
+      </ul>
+    </div>
+    <div>
+      <h5>Scaling discipline</h5>
+      <ul>
+        <li>Scale winners by <b>+20–30% budget every 2–3 days</b>.</li>
+        <li><b>Never double</b> a budget — it resets the learning phase and spikes CPA.</li>
+      </ul>
+      <h5>South Africa specifics</h5>
+      <ul>
+        <li><b>Shopify Payments unavailable in SA</b> → use <b>PayFast</b> or <b>Yoco</b> as gateway.</li>
+        <li><b>Currency edge:</b> revenue in USD, costs largely in ZAR — every $1 of margin is worth ~R18+ locally. The roll-up shows both.</li>
+        <li>Backend stubs waiting on Railway: <span class="mono">/api/product-import</span> (CJ feed), <span class="mono">/api/shopify-publish</span> (Admin API per store), <span class="mono">/api/facebook-ads</span> (Insights auto-fill).</li>
+      </ul>
+    </div>
+  </div>
+</details>
+
+</div>
+<div id="toasts" aria-live="polite"></div>
+<script>
+/* ============================================================
+   DropForge application logic
+   - Proxy-first with direct-endpoint fallback (zero code changes
+     between Claude.ai artifact preview and Railway deployment)
+   - Layered JSON parse safety chain + one model self-repair retry
+   - In-memory state only (artifact preview); serializable for the
+     Railway persistence layer later
+   ============================================================ */
+(() => {
+'use strict';
+
+/* ----------------------- state ----------------------- */
+const state = {
+  mode: 'detecting',            // 'proxy' | 'direct'
+  fxRate: 18.50,
+  forgeAttempts: 0,
+  candidate: null,              // last scored product (any score)
+  qualified: null,              // product that passed 80 or was overridden
+  assets: null,                 // generated store assets
+  stores: [],                   // [{id,name,niche,product,assets,status,tierData,createdVia}]
+  activeStoreId: null,
+  overrideLog: [],              // explicit "proceed anyway" events
+};
+window.DF = { state }; // exposed for the future /api/stores persistence layer
+
+const $ = (s, el=document) => el.querySelector(s);
+const $$ = (s, el=document) => [...el.querySelectorAll(s)];
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const usd = n => isFinite(n) ? '$' + Number(n).toLocaleString('en-US',{maximumFractionDigits:2}) : '—';
+const zar = n => isFinite(n) ? 'R' + Number(n * state.fxRate).toLocaleString('en-ZA',{maximumFractionDigits:0}) : '—';
+
+function toast(msg, kind='') {
+  const t = document.createElement('div');
+  t.className = 'toast ' + kind;
+  t.textContent = msg;
+  $('#toasts').appendChild(t);
+  setTimeout(() => t.remove(), 5200);
+}
+function setLoading(btn, on) {
+  btn.classList.toggle('loading', on);
+  btn.disabled = on;
+}
+
+/* ----------------------- backend detection ----------------------- */
+async function detectMode() {
+  try {
+    const r = await fetch('/api/health', { method:'GET' });
+    if (r.ok) {
+      const j = await r.json();
+      if (j && j.proxy) {
+        state.mode = 'proxy';
+        setPill('proxy', j.keyConfigured ? 'Railway proxy · key OK' : 'Proxy up · KEY MISSING');
+        if (!j.keyConfigured) toast('Proxy is live but ANTHROPIC_API_KEY is not set in Railway → Variables.', 'err');
+        return;
+      }
+    }
+    throw new Error('no proxy');
+  } catch {
+    state.mode = 'direct';
+    setPill('direct', 'Direct mode (preview)');
+  }
+}
+function setPill(cls, label) {
+  const p = $('#modePill');
+  p.className = 'pill ' + cls;
+  $('#modeLabel').textContent = label;
+}
+
+/* ----------------------- Anthropic caller ----------------------- */
+async function callClaude(prompt, maxTokens = 3000) {
+  const body = {
+    model: 'claude-sonnet-4-6',
+    max_tokens: maxTokens,
+    messages: [{ role: 'user', content: prompt }],
+  };
+  const url = state.mode === 'proxy' ? '/api/generate' : 'https://api.anthropic.com/v1/messages';
+  const headers = { 'Content-Type': 'application/json' };
+  const res = await fetch(url, { method:'POST', headers, body: JSON.stringify(body) });
+  const data = await res.json();
+  if (!res.ok) {
+    const msg = data?.error?.message || data?.error || 'API error ' + res.status;
+    throw new Error(typeof msg === 'string' ? msg : JSON.stringify(msg));
+  }
+  return (data.content || []).map(b => b.type === 'text' ? b.text : '').join('\n');
+}
+
+/* ----------------------- JSON safety chain -----------------------
+   1. strip markdown fences        2. trim to outer braces
+   3. regex repairs                4. char-level balanced extractor
+   5. model self-repair retry (caller)
+------------------------------------------------------------------- */
+function safeParse(raw) {
+  if (!raw) return null;
+  let t = String(raw).trim()
+    .replace(/```(?:json)?/gi, '')           // 1. fences
+    .replace(/[\u201c\u201d]/g, '"')          //    smart double quotes
+    .replace(/[\u2018\u2019]/g, "'");
+  const a = t.indexOf('{'), b = t.lastIndexOf('}');
+  if (a === -1 || b === -1 || b <= a) return null;
+  t = t.slice(a, b + 1);                      // 2. outer braces
+  try { return JSON.parse(t); } catch {}
+  let r = t
+    .replace(/,\s*([}\]])/g, '$1')            // 3. trailing commas
+    .replace(/[\r\n]+/g, ' ')
+    .replace(/\\'/g, "'");
+  try { return JSON.parse(r); } catch {}
+  // 4. char-level state machine: extract first balanced object
+  let depth = 0, inStr = false, escp = false, out = '';
+  for (const ch of t) {
+    out += ch;
+    if (inStr) {
+      if (escp) escp = false;
+      else if (ch === '\\') escp = true;
+      else if (ch === '"') inStr = false;
+    } else {
+      if (ch === '"') inStr = true;
+      else if (ch === '{') depth++;
+      else if (ch === '}') { depth--; if (depth === 0) break; }
+    }
+  }
+  try { return JSON.parse(out.replace(/,\s*([}\]])/g, '$1')); } catch {}
+  return null;
+}
+async function parseOrRepair(raw, schemaHint) {
+  const first = safeParse(raw);
+  if (first) return first;
+  // 5. one self-repair round trip
+  const fixed = await callClaude(
+    'The following was supposed to be valid JSON matching this shape: ' + schemaHint +
+    '\nIt failed to parse. Return ONLY the corrected valid JSON — no prose, no markdown fences.\n\n' + raw, 3000);
+  const second = safeParse(fixed);
+  if (second) return second;
+  throw new Error('Could not recover valid JSON from the model response.');
+}
+
+/* ===================================================================
+   SECTION 1 — DISCOVERY
+=================================================================== */
+const RUBRIC_PROMPT = (input) => `You are a ruthless dropshipping product analyst. ${input
+  ? 'Evaluate this product (URL or description follows):\n"""' + input + '"""'
+  : 'Invent ONE realistic, currently-plausible dropship product candidate (physical, shippable, impulse-priceable) and evaluate it.'}
+Score it 0-100 on each dimension of this exact rubric, each with a one-line reason:
+1. problemSolving — does it solve a real pain point vs. being a novelty/fad?
+2. marginRoom — estimated COGS vs. a realistic AOV; is there 3x+ room after ads?
+3. repeatPurchase — consumable/replenishable or one-and-done?
+4. shippingReturnRisk — size, weight, fragility, hygiene/return-risk (higher score = LOWER risk)
+5. saturation — how crowded/burned is this product on FB/TikTok right now? (higher score = LESS saturated)
+Compute "overall" as a weighted judgment (not a naive mean) 0-100. Be honest and harsh — most products fail.
+Respond with ONLY this JSON, no other text:
+{"product":{"name":"","oneLiner":"","category":"","estCogsUSD":0,"estAovUSD":0,"bundleViable":true},
+"scores":{"problemSolving":{"score":0,"reason":""},"marginRoom":{"score":0,"reason":""},"repeatPurchase":{"score":0,"reason":""},"shippingReturnRisk":{"score":0,"reason":""},"saturation":{"score":0,"reason":""}},
+"overall":0,"verdictNote":""}`;
+
+const DIM_LABELS = {
+  problemSolving: 'Problem-solving',
+  marginRoom: 'Margin room',
+  repeatPurchase: 'Repeat purchase',
+  shippingReturnRisk: 'Shipping / return risk',
+  saturation: 'Saturation / competition',
+};
+
+async function scoreProduct(input, btn) {
+  setLoading(btn, true);
+  try {
+    const raw = await callClaude(RUBRIC_PROMPT(input), 2500);
+    const data = await parseOrRepair(raw, '{product:{...},scores:{5 dims},overall,verdictNote}');
+    if (!data.product || !data.scores || typeof data.overall !== 'number') throw new Error('Model returned an unexpected shape.');
+    state.candidate = { ...data, pastedMode: Boolean(input) };
+    if (!input) { state.forgeAttempts++; $('#forgeCount').textContent = 'Forge attempts this session: ' + state.forgeAttempts; }
+    renderScore(state.candidate);
+  } catch (e) {
+    toast('Scoring failed: ' + e.message, 'err');
+  } finally { setLoading(btn, false); }
+}
+
+function renderScore(c) {
+  $('#scorePanel').classList.remove('hidden');
+  $('#spName').textContent = c.product.name || 'Unnamed product';
+  $('#spCat').textContent = c.product.category || '';
+  $('#spOneLiner').textContent = c.product.oneLiner || '';
+  const cogs = Number(c.product.estCogsUSD), aov = Number(c.product.estAovUSD);
+  $('#spCogs').textContent = usd(cogs) + ' (est.)';
+  $('#spAov').textContent = usd(aov) + ' (est.)';
+  $('#spMargin').textContent = (isFinite(cogs) && isFinite(aov) && aov > 0)
+    ? Math.round((1 - cogs / aov) * 100) + '%' : '—';
+  $('#spZarNote').textContent = isFinite(aov - cogs) ? zar(aov - cogs) + ' / unit gross' : '—';
+
+  // dimensions
+  const host = $('#dimList'); host.innerHTML = '';
+  Object.entries(c.scores).forEach(([k, v]) => {
+    const weak = v.score < 70;
+    const row = document.createElement('div');
+    row.innerHTML =
+      `<div class="dim ${weak ? 'weak' : ''}">
+        <span class="name">${esc(DIM_LABELS[k] || k)}</span>
+        <span class="bar"><i style="width:${Math.max(0, Math.min(100, v.score))}%"></i></span>
+        <span class="num">${esc(v.score)}</span>
+      </div>
+      <div class="dim-reason">${esc(v.reason || '')}</div>`;
+    host.appendChild(row);
+  });
+
+  // gauge
+  const arc = $('#gaugeArc'), C = 364.4, score = Math.max(0, Math.min(100, c.overall));
+  arc.style.transition = 'stroke-dashoffset .7s ease';
+  arc.setAttribute('stroke', score >= 80 ? 'var(--scale)' : score >= 60 ? 'var(--watch)' : 'var(--kill)');
+  requestAnimationFrame(() => arc.setAttribute('stroke-dashoffset', String(C - (C * score / 100))));
+  $('#gaugeNum').textContent = Math.round(score);
+
+  // the 80 gate — non-negotiable
+  const gate = $('#gateRow'); gate.innerHTML = '';
+  if (score >= 80) {
+    gate.innerHTML = `<span class="gate-msg pass">✓ Cleared the 80-point gate${c.verdictNote ? ' — ' + esc(c.verdictNote) : ''}</span>`;
+    const go = document.createElement('button');
+    go.className = 'btn primary'; go.textContent = 'Proceed to Store Build →';
+    go.onclick = () => qualify(c, 'gate-pass');
+    gate.appendChild(go);
+  } else {
+    gate.innerHTML = `<span class="gate-msg fail">✕ ${Math.round(score)} / 100 — below the 80 gate.${c.verdictNote ? ' ' + esc(c.verdictNote) : ''}</span>`;
+    if (!c.pastedMode) {
+      const re = document.createElement('button');
+      re.className = 'btn'; re.innerHTML = '<span class="spin"></span>⚒ Re-forge (generate another)';
+      re.onclick = () => scoreProduct('', re);
+      gate.appendChild(re);
+    } else {
+      const weakNames = Object.entries(c.scores).filter(([,v]) => v.score < 70).map(([k]) => DIM_LABELS[k]);
+      const span = document.createElement('span');
+      span.className = 'hint';
+      span.textContent = weakNames.length ? 'Weak dimensions: ' + weakNames.join(', ') + '.' : 'No single weak dimension — the whole is mediocre.';
+      gate.appendChild(span);
+    }
+    const ov = document.createElement('button');
+    ov.className = 'btn danger'; ov.textContent = 'Proceed anyway (logged)';
+    ov.onclick = () => {
+      state.overrideLog.push({ product: c.product.name, score, at: new Date().toISOString() });
+      toast('Override logged: "' + c.product.name + '" at ' + Math.round(score) + '/100. You own this decision.', '');
+      qualify(c, 'manual-override');
+    };
+    gate.appendChild(ov);
+  }
+}
+
+function qualify(c, via) {
+  state.qualified = { ...c, via };
+  state.assets = null;
+  $('#buildEmpty').classList.add('hidden');
+  $('#buildReady').classList.remove('hidden');
+  $('#buildProdLine').innerHTML =
+    `<span>Product <b>${esc(c.product.name)}</b></span>
+     <span>Score <b>${Math.round(c.overall)}/100</b></span>
+     <span>Via <b>${via === 'gate-pass' ? 'gate pass' : 'manual override'}</b></span>
+     <span>COGS <b>${usd(c.product.estCogsUSD)}</b> · AOV <b>${usd(c.product.estAovUSD)}</b></span>`;
+  $('#assetOut').innerHTML = '';
+  $('#btnCreateStore').disabled = true;
+  switchView('build');
+  toast('Product qualified — Store Build unlocked.', 'ok');
+}
+
+/* ===================================================================
+   SECTION 2 — STORE BUILD
+=================================================================== */
+const ASSETS_PROMPT = (p) => `You are a senior DTC copywriter and Facebook ads creative strategist.
+Product: ${p.name} — ${p.oneLiner} (category: ${p.category}, est. COGS $${p.estCogsUSD}, target AOV $${p.estAovUSD}).
+Generate the complete store kit. ${p.bundleViable ? 'The category supports bundling near-identical variants as one kit — include a concrete bundle.' : 'Bundling is weak for this category — set bundle.viable=false and explain in one line.'}
+Respond with ONLY this JSON, no other text:
+{"titles":["5 store/product title options"],
+"description":"full product description, 2-4 short paragraphs, conversion-focused",
+"bullets":["5-7 benefit bullets"],
+"faq":[{"q":"","a":""}] (5 items),
+"bundle":{"viable":true,"name":"","pitch":"","contents":["e.g. 3 variants sold as one kit"],"priceUSD":0},
+"adAngles":[{"angle":"named angle","hook":"scroll-stopping first line","primaryText":"2-4 sentence primary text","ugcScript":"15-30s UGC video script with shot beats"}] (3-5 items),
+"shopifyListing":"ready-to-paste Shopify product page text: title line, description, bullets, FAQ, shipping note — plain text"}`;
+
+async function buildAssets(btn) {
+  const p = state.qualified?.product;
+  if (!p) return;
+  setLoading(btn, true);
+  $('#assetSkeleton').classList.remove('hidden');
+  $('#assetOut').innerHTML = '';
+  try {
+    const raw = await callClaude(ASSETS_PROMPT(p), 4000);
+    const a = await parseOrRepair(raw, '{titles[],description,bullets[],faq[],bundle{},adAngles[],shopifyListing}');
+    state.assets = a;
+    renderAssets(a);
+    $('#btnCreateStore').disabled = false;
+    toast('Store kit generated.', 'ok');
+  } catch (e) {
+    toast('Asset generation failed: ' + e.message, 'err');
+  } finally {
+    setLoading(btn, false);
+    $('#assetSkeleton').classList.add('hidden');
+  }
+}
+
+function assetBlock(title, innerHTML, copyText) {
+  const id = 'cp' + Math.random().toString(36).slice(2, 8);
+  return `<div class="asset">
+    <div class="a-head"><h4>${esc(title)}</h4>
+      ${copyText !== undefined ? `<button class="copy" data-copy="${esc(id)}">Copy</button><textarea class="hidden" id="${id}">${esc(copyText)}</textarea>` : ''}
+    </div>${innerHTML}</div>`;
+}
+
+function renderAssets(a) {
+  let h = '';
+  h += assetBlock('Title options', '<ul>' + (a.titles || []).map(t => '<li>' + esc(t) + '</li>').join('') + '</ul>', (a.titles || []).join('\n'));
+  h += assetBlock('Product description', '<pre>' + esc(a.description) + '</pre>', a.description);
+  h += assetBlock('Benefit bullets', '<ul>' + (a.bullets || []).map(b => '<li>' + esc(b) + '</li>').join('') + '</ul>', (a.bullets || []).map(b => '• ' + b).join('\n'));
+  h += assetBlock('FAQ', (a.faq || []).map(f => `<p style="margin:6px 0"><b>${esc(f.q)}</b><br><span class="sub">${esc(f.a)}</span></p>`).join(''),
+        (a.faq || []).map(f => 'Q: ' + f.q + '\nA: ' + f.a).join('\n\n'));
+  if (a.bundle) {
+    h += assetBlock('Bundle play', a.bundle.viable
+      ? `<p><b>${esc(a.bundle.name)}</b> — ${esc(a.bundle.pitch)}</p><ul>${(a.bundle.contents || []).map(c => '<li>' + esc(c) + '</li>').join('')}</ul><p class="hint">Suggested bundle price: ${usd(a.bundle.priceUSD)}</p>`
+      : `<p class="sub">Bundling not recommended for this category: ${esc(a.bundle.pitch || '')}</p>`);
+  }
+  h += assetBlock('Facebook creative angles', (a.adAngles || []).map((g, i) =>
+      `<div class="angle"><b>${i + 1}. ${esc(g.angle)}</b><br>
+       <span class="hint">HOOK</span> ${esc(g.hook)}<br>
+       <span class="hint">PRIMARY</span> ${esc(g.primaryText)}
+       <div class="ugc">${esc(g.ugcScript)}</div></div>`).join(''),
+    (a.adAngles || []).map((g, i) => `ANGLE ${i + 1}: ${g.angle}\nHOOK: ${g.hook}\nPRIMARY: ${g.primaryText}\nUGC SCRIPT:\n${g.ugcScript}`).join('\n\n---\n\n'));
+  h += assetBlock('Shopify listing — ready to paste', '<pre>' + esc(a.shopifyListing) + '</pre>', a.shopifyListing);
+  $('#assetOut').innerHTML = h;
+  $$('#assetOut .copy').forEach(b => b.onclick = () => {
+    const src = document.getElementById(b.dataset.copy);
+    navigator.clipboard.writeText(src.value).then(() => toast('Copied to clipboard.', 'ok'), () => toast('Copy failed — select and copy manually.', 'err'));
+  });
+}
+
+/* ===================================================================
+   SECTION 3 — THE GAUNTLET (exact framework, no softening)
+=================================================================== */
+const TIERS = [
+  { n:1, name:'Hook Check',  spend:'$50 spent',
+    rule:'CTR ≥ 1.0% · CPC < $1.50 — kill if CTR < 0.5% at normal CPMs',
+    fields:[{k:'spend',l:'Spend $'},{k:'ctr',l:'CTR %'},{k:'cpc',l:'CPC $'}] },
+  { n:2, name:'Page Check',  spend:'$100 spent',
+    rule:'ATC ≥ 3–5% of LPV · cost/ATC < $4 — kill if good CTR but ATC < 1.5%',
+    fields:[{k:'spend',l:'Spend $'},{k:'lpv',l:'Landing page views'},{k:'atc',l:'Add-to-carts'}] },
+  { n:3, name:'Offer Check', spend:'$150–200 spent',
+    rule:'1–3+ purchases · CPA ≤ 30–35% of AOV — kill if decent ATC but zero purchases by $150–200',
+    fields:[{k:'spend',l:'Spend $'},{k:'purchases',l:'Purchases'},{k:'aov',l:'AOV $'}] },
+  { n:4, name:'Scale Decision', spend:'$250+ spent',
+    rule:'ROAS ≥ 2.0–2.5x · CPA at/under target · held across 3–5+ purchases',
+    fields:[{k:'spend',l:'Spend $'},{k:'revenue',l:'Revenue $'},{k:'purchases',l:'Purchases'},{k:'targetCpa',l:'Target CPA $'}] },
+];
+
+/* Exact verdict logic — mirrors the framework, thresholds hard-coded */
+function verdictT1(d) {
+  if (!isFilled(d, ['ctr','cpc'])) return v('idle');
+  if (d.ctr < 0.5) return v('kill', 'CTR under 0.5% at normal CPMs — this is a CREATIVE problem. Re-test with a new angle, not the same page.');
+  if (d.ctr >= 1.0 && d.cpc < 1.50) return v('scale', 'Hook works: CTR ≥ 1.0% and CPC under $1.50. Advance to the Page Check at $100.');
+  return v('watch', 'Between thresholds (CTR 0.5–1.0% or CPC ≥ $1.50). Let it run toward $50, watch the next creative variant.');
+}
+function verdictT2(d) {
+  if (!isFilled(d, ['lpv','atc','spend'])) return v('idle');
+  const rate = d.lpv > 0 ? (d.atc / d.lpv) * 100 : 0;
+  const cost = d.atc > 0 ? d.spend / d.atc : Infinity;
+  if (rate < 1.5) return v('kill', `ATC rate ${rate.toFixed(1)}% with a working hook — this is a PAGE/OFFER/PRICE problem, not an ad problem. Fix the page before spending again.`);
+  if (rate >= 3 && cost < 4) return v('scale', `ATC ${rate.toFixed(1)}% and cost/ATC ${usd(cost)} — page converts interest. Advance to the Offer Check.`);
+  return v('watch', `ATC ${rate.toFixed(1)}% / cost per ATC ${usd(cost)} — between thresholds. Small page tweaks (offer clarity, price framing) before more spend.`);
+}
+function verdictT3(d) {
+  if (!isFilled(d, ['spend','purchases','aov'])) return v('idle');
+  const cpa = d.purchases > 0 ? d.spend / d.purchases : Infinity;
+  const cap = d.aov * 0.35;
+  if (d.purchases === 0 && d.spend >= 150) return v('kill', 'Decent ATCs but ZERO purchases by $150–200 — trust/checkout friction. Reviews, guarantee, price psychology. Kill this run.');
+  if (d.purchases >= 1 && cpa <= cap) return v('scale', `CPA ${usd(cpa)} is at/under 35% of AOV (${usd(cap)}). Offer holds — move to the Scale Decision at $250+.`);
+  if (d.purchases === 0) return v('watch', 'No purchases yet but spend is under $150 — the kill line is $150–200. Hold.');
+  return v('watch', `Purchases exist but CPA ${usd(cpa)} exceeds 35% of AOV (${usd(cap)}). Margin math fails at this CPA — tighten before advancing.`);
+}
+function verdictT4(d) {
+  if (!isFilled(d, ['spend','revenue','purchases','targetCpa'])) return v('idle');
+  const roas = d.spend > 0 ? d.revenue / d.spend : 0;
+  const cpa = d.purchases > 0 ? d.spend / d.purchases : Infinity;
+  if (roas < 1.0 && d.spend >= 250) return v('kill', `ROAS ${roas.toFixed(2)}x at $250+ — losing money at decision spend. Kill.`);
+  if (roas >= 2.0 && d.purchases >= 3 && cpa <= d.targetCpa)
+    return v('scale', `ROAS ${roas.toFixed(2)}x, CPA ${usd(cpa)} at/under target, held across ${d.purchases} purchases. SCALE: raise budget +20–30% every 2–3 days. Never double — doubling resets the learning phase and spikes CPA.`);
+  return v('watch', `ROAS ${roas.toFixed(2)}x / CPA ${usd(cpa)} / ${d.purchases} purchases — not yet a clean 2.0–2.5x held across 3–5+ purchases. Hold budget flat and re-check tomorrow morning.`);
+}
+const VERDICT_FN = { 1:verdictT1, 2:verdictT2, 3:verdictT3, 4:verdictT4 };
+function v(kind, note='') { return { kind, note }; }
+function isFilled(d, keys) { return keys.every(k => isFinite(d[k])); }
+
+function activeStore() { return state.stores.find(s => s.id === state.activeStoreId) || null; }
+
+function renderGauntlet() {
+  const has = state.stores.length > 0;
+  $('#gauntletEmpty').classList.toggle('hidden', has);
+  $('#gauntletBody').classList.toggle('hidden', !has);
+  const sel = $('#storeSelect');
+  sel.innerHTML = state.stores.map(s => `<option value="${s.id}">${esc(s.name)}</option>`).join('');
+  if (!has) return;
+  if (!activeStore()) state.activeStoreId = state.stores[0].id;
+  sel.value = state.activeStoreId;
+  const store = activeStore();
+
+  const host = $('#tiersHost'); host.innerHTML = '';
+  let railState = [];
+  TIERS.forEach(t => {
+    const d = store.tierData[t.n] || {};
+    const verdict = VERDICT_FN[t.n](d);
+    railState.push(verdict.kind);
+    const el = document.createElement('div');
+    el.className = 'tier' + (t.n === currentTier(store) ? ' open' : '');
+    el.innerHTML = `
+      <div class="t-head" data-toggle>
+        <span class="badge">TIER ${t.n} · ${esc(t.spend)}</span>
+        <h4>${esc(t.name)}</h4>
+        <span class="rule">${esc(t.rule)}</span>
+        <span class="chip ${verdict.kind === 'idle' ? 'idle' : verdict.kind}">${verdict.kind === 'idle' ? 'awaiting data' : verdict.kind === 'scale' && t.n < 4 ? 'pass' : verdict.kind}</span>
+      </div>
+      <div class="t-body">
+        <div class="metrics">
+          ${t.fields.map(f => `<div><label class="lab">${esc(f.l)}</label>
+            <input type="number" step="0.01" min="0" data-tier="${t.n}" data-key="${f.k}" value="${d[f.k] ?? ''}" placeholder="—"></div>`).join('')}
+        </div>
+        <div class="derived">${derivedLine(t.n, d)}</div>
+        <div class="verdict-note ${verdict.kind === 'idle' ? '' : verdict.kind}">${esc(verdict.note)}</div>
+      </div>`;
+    host.appendChild(el);
+  });
+
+  // rail coloring
+  $$('#railRow .stop').forEach((s, i) => {
+    s.className = 'stop';
+    const k = railState[i];
+    if (k === 'kill') s.classList.add('dead');
+    else if (k === 'scale') s.classList.add(i < 3 ? 'done' : 'active');
+    else if (k === 'watch') s.classList.add('active');
+  });
+
+  $$('#tiersHost [data-toggle]').forEach(h => h.onclick = () => h.parentElement.classList.toggle('open'));
+  $$('#tiersHost input').forEach(inp => inp.onchange = () => {
+    const t = Number(inp.dataset.tier), k = inp.dataset.key;
+    const store = activeStore(); if (!store) return;
+    store.tierData[t] = store.tierData[t] || {};
+    const val = parseFloat(inp.value);
+    store.tierData[t][k] = isFinite(val) ? val : undefined;
+    renderGauntlet(); renderCommand();
+  });
+}
+function derivedLine(n, d) {
+  if (n === 2 && isFilled(d, ['lpv','atc','spend']))
+    return `ATC rate <b>${((d.atc/d.lpv)*100).toFixed(1)}%</b> · cost/ATC <b>${usd(d.atc>0?d.spend/d.atc:NaN)}</b>`;
+  if (n === 3 && isFilled(d, ['spend','purchases','aov']))
+    return `CPA <b>${d.purchases>0?usd(d.spend/d.purchases):'∞'}</b> · 35% of AOV cap <b>${usd(d.aov*0.35)}</b>`;
+  if (n === 4 && isFilled(d, ['spend','revenue','purchases']))
+    return `ROAS <b>${(d.revenue/d.spend).toFixed(2)}x</b> · CPA <b>${d.purchases>0?usd(d.spend/d.purchases):'∞'}</b>`;
+  return 'Enter metrics above — verdicts compute automatically.';
+}
+function currentTier(store) {
+  for (const t of [1,2,3,4]) {
+    const verdict = VERDICT_FN[t](store.tierData[t] || {});
+    if (verdict.kind === 'kill') return t;
+    if (verdict.kind !== 'scale') return t;
+  }
+  return 4;
+}
+function storeVerdict(store) {
+  const t = currentTier(store);
+  const verdict = VERDICT_FN[t](store.tierData[t] || {});
+  return { tier: t, kind: verdict.kind === 'idle' ? 'watch' : (verdict.kind === 'scale' && t < 4 ? 'watch' : verdict.kind), raw: verdict.kind };
+}
+
+/* ===================================================================
+   SECTION 4 — COMMAND CENTER
+=================================================================== */
+function storeTotals(s) {
+  let spend = 0, revenue = 0, purchases = 0;
+  [1,2,3,4].forEach(t => {
+    const d = s.tierData[t] || {};
+    spend = Math.max(spend, d.spend || 0);          // spend is cumulative per framework
+    if (t === 4 && isFinite(d.revenue)) revenue = d.revenue;
+    if (isFinite(d.purchases)) purchases = Math.max(purchases, d.purchases);
+    if (t === 3 && !isFinite((s.tierData[4]||{}).revenue) && isFinite(d.purchases) && isFinite(d.aov))
+      revenue = Math.max(revenue, d.purchases * d.aov);
+  });
+  const cogs = purchases * (s.product?.estCogsUSD || 0);
+  return { spend, revenue, purchases, cogs, profit: revenue - spend - cogs };
+}
+
+function renderCommand() {
+  const has = state.stores.length > 0;
+  $('#ccEmpty').classList.toggle('hidden', has);
+  const roll = state.stores.reduce((a, s) => {
+    const t = storeTotals(s);
+    a.spend += t.spend; a.revenue += t.revenue; a.profit += t.profit; return a;
+  }, { spend:0, revenue:0, profit:0 });
+  $('#rollup').innerHTML = `
+    <div class="kpi"><div class="k">Stores</div><div class="v">${state.stores.length}</div><div class="z">${state.stores.filter(s=>s.status==='Scaling').length} scaling</div></div>
+    <div class="kpi"><div class="k">Total ad spend</div><div class="v">${usd(roll.spend)}</div><div class="z">${zar(roll.spend)}</div></div>
+    <div class="kpi"><div class="k">Total revenue</div><div class="v">${usd(roll.revenue)}</div><div class="z">${zar(roll.revenue)}</div></div>
+    <div class="kpi profit"><div class="k">Est. profit (rev − ads − COGS)</div><div class="v ${roll.profit>=0?'pos':'neg'}">${usd(roll.profit)}</div><div class="z">${zar(roll.profit)} — the ZAR edge in one number</div></div>`;
+
+  const host = $('#cardHost'); host.innerHTML = '';
+  state.stores.forEach(s => {
+    const t = storeTotals(s), sv = storeVerdict(s);
+    const card = document.createElement('div');
+    card.className = 'store-card';
+    card.innerHTML = `
+      <div class="sc-top">
+        <div><h4>${esc(s.name)}</h4><div class="niche">${esc(s.niche || s.product?.category || '')}</div></div>
+        <span class="chip ${sv.kind}" style="margin-left:auto">${sv.raw === 'idle' ? 'tier ' + sv.tier + ' — no data' : sv.kind}</span>
+      </div>
+      <div class="sc-kpis">
+        <span>Tier <b>${sv.tier}</b></span>
+        <span>Spend <b>${usd(t.spend)}</b></span>
+        <span>Rev <b>${usd(t.revenue)}</b></span>
+        <span>Profit <b>${usd(t.profit)}</b></span>
+      </div>
+      <div class="sc-foot">
+        <select data-status>
+          ${['Testing','Watching','Scaling','Paused','Killed'].map(o => `<option ${s.status===o?'selected':''}>${o}</option>`).join('')}
+        </select>
+        <button class="mini" data-open>Open in Gauntlet</button>
+        <button class="mini" data-del>Remove</button>
+      </div>`;
+    card.querySelector('[data-status]').onchange = e => { s.status = e.target.value; renderCommand(); };
+    card.querySelector('[data-open]').onclick = () => { state.activeStoreId = s.id; switchView('gauntlet'); renderGauntlet(); };
+    card.querySelector('[data-del]').onclick = () => {
+      if (!confirm('Remove "' + s.name + '" from the portfolio? (No undo in preview mode.)')) return;
+      state.stores = state.stores.filter(x => x.id !== s.id);
+      if (state.activeStoreId === s.id) state.activeStoreId = state.stores[0]?.id || null;
+      renderCommand(); renderGauntlet();
+    };
+    host.appendChild(card);
+  });
+}
+
+function createStore(product, assets, name, via) {
+  const s = {
+    id: 's' + Date.now() + Math.random().toString(36).slice(2, 6),
+    name: name || (product.name.split(' ').slice(0, 3).join(' ') + ' Store'),
+    niche: product.category,
+    product, assets,
+    status: 'Testing',
+    tierData: {},
+    createdVia: via,
+  };
+  state.stores.push(s);
+  state.activeStoreId = s.id;
+  renderCommand(); renderGauntlet();
+  return s;
+}
+
+/* ----------------------- sample store (offline explore) ----------------------- */
+function loadSample() {
+  if (state.stores.some(s => s.createdVia === 'sample')) { toast('Sample store already loaded.'); return; }
+  const s = createStore(
+    { name:'Posture Reset Band', oneLiner:'Adjustable upper-back posture band for desk workers.', category:'Health & Home Office', estCogsUSD:4.1, estAovUSD:29.99, bundleViable:true },
+    null, 'Sample: Posture Co.', 'sample');
+  s.tierData = { 1:{spend:52, ctr:1.4, cpc:0.92}, 2:{spend:104, lpv:610, atc:24}, 3:{spend:168, purchases:4, aov:29.99} };
+  toast('Sample store loaded with Tier 1–3 data — open the Gauntlet.', 'ok');
+  renderCommand(); renderGauntlet();
+}
+
+/* ----------------------- backend stubs (frontend side) ----------------------- */
+async function callStub(path, label) {
+  try {
+    const r = await fetch(path, { method:'POST', headers:{'Content-Type':'application/json'}, body:'{}' });
+    const j = await r.json().catch(() => ({}));
+    if (r.status === 501) toast(label + ' is a stub — attach it in server.js: ' + (j.attach || ''), '');
+    else if (r.ok) toast(label + ' responded — the integration is live.', 'ok');
+    else toast(label + ' error ' + r.status, 'err');
+  } catch {
+    toast(label + ' needs the Railway backend — not available in direct preview mode.', 'err');
+  }
+}
+
+/* ----------------------- navigation & wiring ----------------------- */
+function switchView(id) {
+  $$('nav.tabs button').forEach(b => b.classList.toggle('active', b.dataset.view === id));
+  $$('main .view').forEach(vw => vw.classList.toggle('active', vw.id === 'view-' + id));
+}
+$$('nav.tabs button').forEach(b => b.onclick = () => switchView(b.dataset.view));
+
+$('#fxRate').onchange = e => {
+  const val = parseFloat(e.target.value);
+  if (isFinite(val) && val > 0) { state.fxRate = val; renderCommand(); toast('Exchange rate updated: R' + val.toFixed(2) + ' / $1.'); }
+};
+$('#btnScorePasted').onclick = () => {
+  const input = $('#prodInput').value.trim();
+  if (!input) { toast('Paste a product URL or description first.', 'err'); return; }
+  scoreProduct(input, $('#btnScorePasted'));
+};
+$('#btnGenerate').onclick = () => scoreProduct('', $('#btnGenerate'));
+$('#btnImportFeed').onclick = () => callStub('/api/product-import', 'Product import (AliExpress/CJ)');
+$('#btnBuildAssets').onclick = () => buildAssets($('#btnBuildAssets'));
+$('#btnShopifyPublish').onclick = () => callStub('/api/shopify-publish', 'Shopify publish');
+$('#btnFbImport').onclick = () => callStub('/api/facebook-ads', 'Facebook metrics import');
+$('#btnCreateStore').onclick = () => {
+  const p = state.qualified?.product;
+  if (!p || !state.assets) { toast('Generate the store assets first.', 'err'); return; }
+  const name = prompt('Store name:', p.name.split(' ').slice(0, 3).join(' ') + ' Co.');
+  if (name === null) return;
+  createStore(p, state.assets, name.trim() || undefined, state.qualified.via);
+  switchView('gauntlet');
+  toast('Store created — it starts at Tier 1: Hook Check.', 'ok');
+};
+$('#storeSelect').onchange = e => { state.activeStoreId = e.target.value; renderGauntlet(); };
+$('#btnSample').onclick = loadSample;
+
+/* ----------------------- boot ----------------------- */
+detectMode();
+renderCommand();
+renderGauntlet();
+})();
+</script>
+</body>
+</html>

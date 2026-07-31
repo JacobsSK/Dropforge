@@ -1,0 +1,15 @@
+{
+  "name": "dropforge",
+  "version": "1.0.0",
+  "description": "DropForge — dropshipping product research, store builder, Gauntlet decision console, and multi-store command center",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "express": "^4.19.2"
+  }
+}
